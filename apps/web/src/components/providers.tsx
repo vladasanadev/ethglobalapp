@@ -12,9 +12,11 @@ const ErudaProvider = dynamic(
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ErudaProvider>
-      <FrameWalletProvider>
-        <MiniAppProvider addMiniAppOnLoad={true}>{children}</MiniAppProvider>
-      </FrameWalletProvider>
+      <MiniAppProvider addMiniAppOnLoad={true}>
+        <FrameWalletProvider>
+          {children}
+        </FrameWalletProvider>
+      </MiniAppProvider>
     </ErudaProvider>
   );
 }

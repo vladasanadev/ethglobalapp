@@ -6,18 +6,17 @@
 
 export const CONTRACTS = {
   PROOF_OF_WOMANHOOD: {
-    address: '0x0000000000000000000000000000000000000000' as `0x${string}`,
-    // ABI will be added after compilation
+    address: '0x7D03a457A5919Df05a37bDC424126A1C4D37E97D' as `0x${string}`,
+    // Deployed to Celo Sepolia - Updated with gender storage
   },
   WOMANSPLAIN_QUESTIONS: {
     address: '0x0000000000000000000000000000000000000000' as `0x${string}`,
-    // ABI will be added after compilation
+    // TODO: Deploy this contract
   },
 };
 
 // Self Protocol Hub V2 on Celo Sepolia
-// TODO: Get actual address from https://docs.self.xyz/contract-integration/deployed-contracts
-export const SELF_HUB_V2_ADDRESS = '0x0000000000000000000000000000000000000000' as `0x${string}`;
+export const SELF_HUB_V2_ADDRESS = '0x16ECBA51e18a4a7e61fdC417f0d47AFEeDfbed74' as `0x${string}`;
 
 // Chain ID for Celo Sepolia
 export const CELO_SEPOLIA_CHAIN_ID = 11142220;
@@ -27,6 +26,20 @@ export const PROOF_OF_WOMANHOOD_ABI = [
   {
     "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
     "name": "isVerifiedWoman",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
+    "name": "getUserGender",
+    "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
+    "name": "hasDisclosedGender",
     "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
     "stateMutability": "view",
     "type": "function"
@@ -54,6 +67,17 @@ export const PROOF_OF_WOMANHOOD_ABI = [
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
+      {"indexed": false, "internalType": "string", "name": "gender", "type": "string"},
+      {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"},
+      {"indexed": false, "internalType": "bytes32", "name": "nullifier", "type": "bytes32"}
+    ],
+    "name": "GenderDisclosed",
+    "type": "event"
   }
 ] as const;
 

@@ -17,8 +17,11 @@ contract ProofOfWomanhood is SelfVerificationRoot {
     SelfStructs.VerificationConfigV2 public verificationConfig;
     bytes32 public verificationConfigId;
     
-    // Mapping from user address to verification status
+    // Mapping from user address to verification status (only for women)
     mapping(address => bool) public verifiedWomen;
+    
+    // Mapping from user address to disclosed gender ("M" or "F")
+    mapping(address => string) public userGender;
     
     // Mapping from user address to verification timestamp
     mapping(address => uint256) public verificationTimestamp;
@@ -36,6 +39,13 @@ contract ProofOfWomanhood is SelfVerificationRoot {
     uint256 public constant LEGEND_BADGE = 1 << 3;        // Answered 100 questions
     
     // Events
+    event GenderDisclosed(
+        address indexed user,
+        string gender,
+        uint256 timestamp,
+        bytes32 nullifier
+    );
+    
     event WomanVerified(
         address indexed user,
         uint256 timestamp,
@@ -51,6 +61,20 @@ contract ProofOfWomanhood is SelfVerificationRoot {
     event BadgeEarned(
         address indexed user,
         uint256 badge
+    );
+    
+    // Debug events for gender verification
+    event DebugVerificationHook(
+        string message,
+        address user,
+        uint256 value
+    );
+    
+    event DebugGenderCheck(
+        string message,
+        uint256 attestationId,
+        uint256 genderValue,
+        bool isWoman
     );
 
     /**
@@ -72,7 +96,7 @@ contract ProofOfWomanhood is SelfVerificationRoot {
     
     /**
      * @notice Implementation of customVerificationHook
-     * @dev Called after hub verification succeeds - marks user as verified woman
+     * @dev Called after hub verification succeeds - stores gender and verifies women
      * @param output The verification output from the hub
      * @param userData The user data passed through verification
      */
@@ -83,20 +107,58 @@ contract ProofOfWomanhood is SelfVerificationRoot {
         // Derive user address from userIdentifier
         address user = address(uint160(uint256(output.userIdentifier)));
         
-        // Mark as verified
-        verifiedWomen[user] = true;
+        emit DebugVerificationHook("Verification hook called", user, uint256(output.nullifier));
+        
+        // Check gender from output.gender field
+        // Gender is disclosed as a string: "F" for female, "M" for male
+        string memory gender = output.gender;
+        
+        // Convert first character of gender string
+        bytes memory genderBytes = bytes(gender);
+        require(genderBytes.length > 0, "Gender not disclosed");
+        
+        // Check if gender is "F" (Female) or "M" (Male)
+        bool isWoman = genderBytes[0] == bytes1("F");
+        bool isMan = genderBytes[0] == bytes1("M");
+        
+        require(isWoman || isMan, "Gender must be M (male) or F (female)");
+        
+        emit DebugGenderCheck(
+            "Gender check",
+            uint256(output.attestationId),
+            uint256(uint8(genderBytes[0])),
+            isWoman
+        );
+        
+        // Store gender for this user (accessible by frontend)
+        userGender[user] = gender;
         verificationTimestamp[user] = block.timestamp;
         
-        // Award verification badge if not already earned
-        if (badges[user] & VERIFIED_BADGE == 0) {
-            badges[user] |= VERIFIED_BADGE;
-            emit BadgeEarned(user, VERIFIED_BADGE);
+        // Emit gender disclosure event (frontend can listen to this)
+        emit GenderDisclosed(user, gender, block.timestamp, bytes32(output.nullifier));
+        
+        // Only women get verified status, badges, and points
+        if (isWoman) {
+            emit DebugVerificationHook("Gender: Female - granting verified status", user, 1);
+            
+            // Mark as verified woman
+            verifiedWomen[user] = true;
+            
+            // Award verification badge if not already earned
+            if (badges[user] & VERIFIED_BADGE == 0) {
+                badges[user] |= VERIFIED_BADGE;
+                emit BadgeEarned(user, VERIFIED_BADGE);
+            }
+            
+            // Award initial validation points
+            _awardPoints(user, 50);
+            
+            emit WomanVerified(user, block.timestamp, bytes32(output.nullifier));
+        } else {
+            emit DebugVerificationHook("Gender: Male - no verified status granted", user, 0);
         }
         
-        // Award initial validation points
-        _awardPoints(user, 50);
-        
-        emit WomanVerified(user, block.timestamp, bytes32(output.nullifier));
+        emit DebugVerificationHook("Verification complete", user, validationPoints[user]);
     }
 
     /**
@@ -115,6 +177,21 @@ contract ProofOfWomanhood is SelfVerificationRoot {
      */
     function isVerifiedWoman(address user) external view returns (bool) {
         return verifiedWomen[user];
+    }
+    
+    /**
+     * @notice Get the disclosed gender of a user
+     * @return gender string - "F" for female, "M" for male, "" if not disclosed
+     */
+    function getUserGender(address user) external view returns (string memory) {
+        return userGender[user];
+    }
+    
+    /**
+     * @notice Check if user has disclosed their gender (either M or F)
+     */
+    function hasDisclosedGender(address user) external view returns (bool) {
+        return bytes(userGender[user]).length > 0;
     }
     
     /**

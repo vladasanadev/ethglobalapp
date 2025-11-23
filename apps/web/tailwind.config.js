@@ -26,6 +26,9 @@ module.exports = {
         yellow: '#FCFF52',
         forestGreen: '#4E632A',
         darkPurple: '#1A0329',
+        purple: {
+          950: '#1A0329',
+        },
         lightTan: '#FBF6F1',
         tan: '#E6E3D5',
         brown: '#635949',
@@ -82,6 +85,9 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      borderWidth: {
+        '3': '3px',
       },
     },
   },

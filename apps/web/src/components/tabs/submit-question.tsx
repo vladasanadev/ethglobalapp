@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { CONTRACTS, WOMANSPLAIN_QUESTIONS_ABI } from "@/lib/contracts";
+import { ImageUpload } from "@/components/image-upload";
 
 export function SubmitQuestionTab() {
   const { address, isConnected } = useAccount();
   const [question, setQuestion] = useState("");
   const [screenshot, setScreenshot] = useState("");
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { writeContract, data: hash } = useWriteContract();
@@ -48,26 +50,34 @@ export function SubmitQuestionTab() {
     setTimeout(() => {
       setQuestion("");
       setScreenshot("");
+      setScreenshotFile(null);
     }, 2000);
   }
 
+  const handleImageSelect = (file: File, preview: string) => {
+    setScreenshotFile(file);
+    // Store base64 preview as the screenshot value
+    // In production, you'd upload to IPFS and store the hash
+    setScreenshot(preview);
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Section Header */}
       <div>
-        <h2 className="font-alpina text-5xl md:text-7xl font-thin tracking-tight leading-none mb-4">
+        <h2 className="font-alpina text-3xl sm:text-5xl md:text-7xl font-thin tracking-tight leading-none mb-3 sm:mb-4">
           Ask the <span className="italic">Community</span>
         </h2>
-        <p className="font-inter text-lg text-brown max-w-2xl">
+        <p className="font-inter text-sm sm:text-base md:text-lg text-brown max-w-2xl">
           Submit your relationship question anonymously. Verified women in our community will provide honest, unfiltered advice.
         </p>
       </div>
 
       {/* Form - Big color blocks, sharp edges */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Question Input */}
         <div>
-          <label className="font-inter text-sm font-bold uppercase tracking-widest block mb-3">
+          <label className="font-inter text-xs sm:text-sm font-bold uppercase tracking-widest block mb-2 sm:mb-3">
             YOUR QUESTION
           </label>
           <textarea
@@ -76,27 +86,22 @@ export function SubmitQuestionTab() {
             placeholder="Tell us what's going on..."
             rows={6}
             maxLength={1000}
-            className="w-full px-6 py-4 bg-white text-black border-4 border-black focus:outline-none focus:border-yellow transition-colors duration-150 font-inter text-base"
+            className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-white text-black border-3 sm:border-4 border-black focus:outline-none focus:border-yellow transition-colors duration-150 font-inter text-sm sm:text-base"
           />
           <p className="font-inter text-xs text-brown mt-2">
             {question.length} / 1000 characters
           </p>
         </div>
 
-        {/* Screenshot Upload */}
+        {/* Screenshot Upload with Drag & Drop */}
         <div>
-          <label className="font-inter text-sm font-bold uppercase tracking-widest block mb-3">
-            SCREENSHOT (OPTIONAL)
-          </label>
-          <input
-            type="text"
-            value={screenshot}
-            onChange={(e) => setScreenshot(e.target.value)}
-            placeholder="Paste image URL or IPFS hash..."
-            className="w-full px-6 py-4 bg-white text-black border-4 border-black focus:outline-none focus:border-yellow transition-colors duration-150 font-inter text-base"
+          <ImageUpload
+            onImageSelect={handleImageSelect}
+            maxSizeMB={5}
+            label="SCREENSHOT (OPTIONAL)"
           />
           <p className="font-inter text-xs text-brown mt-2">
-            For now, paste an image URL. IPFS upload coming soon.
+            Upload a screenshot to provide context. Drag & drop or click to select. Max 5MB.
           </p>
         </div>
 

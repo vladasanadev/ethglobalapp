@@ -1,5 +1,20 @@
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
+import * as dotenv from "dotenv";
+
+dotenv.config();
+
+// Get private key from environment and ensure it has 0x prefix
+function getPrivateKey(): string[] {
+  const key = process.env.PRIVATE_KEY;
+  if (!key) {
+    console.warn("Warning: PRIVATE_KEY not found in .env file");
+    return [];
+  }
+  // Ensure key has 0x prefix
+  const formattedKey = key.startsWith("0x") ? key : `0x${key}`;
+  return [formattedKey];
+}
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -15,19 +30,19 @@ const config: HardhatUserConfig = {
     // Celo Mainnet
     celo: {
       url: "https://forno.celo.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      accounts: getPrivateKey(),
       chainId: 42220,
     },
     // Celo Alfajores Testnet
     alfajores: {
       url: "https://alfajores-forno.celo-testnet.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      accounts: getPrivateKey(),
       chainId: 44787,
     },
     // Celo Sepolia Testnet
     sepolia: {
       url: "https://forno.celo-sepolia.celo-testnet.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      accounts: getPrivateKey(),
       chainId: 11142220,
     },
     // Local development

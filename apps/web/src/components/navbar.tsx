@@ -11,9 +11,11 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { WalletConnect, WalletStatus } from "@/components/wallet-connect"
 
 const navLinks = [
   { name: "Home", href: "/" },
+  { name: "Wallet Demo", href: "/wallet-demo" },
   { name: "Docs", href: "https://docs.celo.org", external: true },
 ]
 
@@ -55,7 +57,7 @@ export function Navbar() {
                   </Link>
                 ))}
                 <div className="mt-6 pt-6 border-t">
-                  <Button className="w-full">Connect Wallet</Button>
+                  <WalletConnect />
                 </div>
               </nav>
             </SheetContent>
@@ -90,7 +92,7 @@ export function Navbar() {
           ))}
           
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">Connect Wallet</Button>
+            <WalletStatus />
           </div>
         </nav>
       </div>

@@ -11,7 +11,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import FrameWalletProvider from "./frame-wallet-context";
 
 interface MiniAppContextType {
   isMiniAppReady: boolean;
@@ -34,12 +33,14 @@ export function MiniAppProvider({ children, addMiniAppOnLoad }: MiniAppProviderP
   const setMiniAppReady = useCallback(async () => {
     try {
       const context = await sdk.context;
+      
       if (context) {
         setContext(context);
       }
+      
       await sdk.actions.ready();
     } catch (err) {
-      console.error("SDK initialization error:", err);
+      // Still set ready even if there's an error, so app doesn't hang
     } finally {
       setIsMiniAppReady(true);
     }
@@ -47,9 +48,7 @@ export function MiniAppProvider({ children, addMiniAppOnLoad }: MiniAppProviderP
 
   useEffect(() => {
     if (!isMiniAppReady) {
-      setMiniAppReady().then(() => {
-        console.log("MiniApp loaded");
-      });
+      setMiniAppReady();
     }
   }, [isMiniAppReady, setMiniAppReady]);
 
@@ -87,7 +86,7 @@ export function MiniAppProvider({ children, addMiniAppOnLoad }: MiniAppProviderP
         context,
       }}
     >
-      <FrameWalletProvider>{children}</FrameWalletProvider>
+      {children}
     </MiniAppContext.Provider>
   );
 }

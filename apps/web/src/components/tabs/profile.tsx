@@ -51,13 +51,13 @@ export function ProfileTab({ isVerified, setIsVerified }: ProfileTabProps) {
   const pointsValue = points ? Number(points) : 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Section Header */}
-      <div className="border-b-4 border-black pb-6">
-        <h2 className="font-alpina text-5xl md:text-7xl font-thin tracking-tight leading-none mb-4">
+      <div className="border-b-3 sm:border-b-4 border-black pb-4 sm:pb-6">
+        <h2 className="font-alpina text-3xl sm:text-5xl md:text-7xl font-thin tracking-tight leading-none mb-3 sm:mb-4">
           Your <span className="italic">Profile</span>
         </h2>
-        <p className="font-inter text-lg text-brown max-w-2xl">
+        <p className="font-inter text-sm sm:text-base md:text-lg text-brown max-w-2xl">
           Track your contributions and earned badges.
         </p>
       </div>
