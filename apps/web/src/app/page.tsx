@@ -266,7 +266,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {activeTab === "submit" && <SubmitQuestionTab />}
         {activeTab === "redflags" && <RedFlagDetectionTab />}
-        {activeTab === "profile" && <ProfileTab />}
+        {activeTab === "profile" && <ProfileTab isVerified={isVerified || false} setIsVerified={() => {}} />}
       </div>
     </main>
   );
