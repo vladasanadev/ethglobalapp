@@ -14,10 +14,9 @@ type Tab = "submit" | "profile" | "redflags";
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const { isMiniAppReady } = useMiniApp();
-  const { address, isConnected, isConnecting, connector: activeConnector } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { address, isConnected, isConnecting } = useAccount();
+  const { connect, connectors } = useConnect();
   const [activeTab, setActiveTab] = useState<Tab>("submit");
-  const [connectionAttempted, setConnectionAttempted] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   
@@ -54,26 +53,35 @@ export default function Home() {
   }, [mounted, isMiniAppReady, connectors.length]);
 
 
-  // Clear error when successfully connected
+  // Auto-connect wallet when ready
   useEffect(() => {
-    if (isConnected && connectionError) {
-      setConnectionError(null);
-    }
-  }, [isConnected, connectionError]);
-
-  // Handle connection with error handling
-  const handleConnect = async (connector: typeof connectors[0]) => {
-    try {
-      setConnectionError(null);
-      await connect({ connector });
-    } catch (error: unknown) {
-      let errorMessage = "Connection failed";
-      if (error instanceof Error) {
-        errorMessage = error.message || errorMessage;
+    if (isConnected || isConnecting || !isMiniAppReady || connectors.length === 0) return;
+    
+    const autoConnect = async () => {
+      try {
+        setConnectionError(null);
+        const farcasterConnector = connectors.find(c => c.id.includes('farcaster') || c.id.includes('miniapp'));
+        const connector = farcasterConnector || connectors[0];
+        
+        if (connector) {
+          await connect({ connector });
+        }
+      } catch (error: unknown) {
+        let errorMessage = "Failed to connect wallet automatically";
+        if (error instanceof Error) {
+          errorMessage = error.message || errorMessage;
+        }
+        setConnectionError(errorMessage);
       }
-      setConnectionError(errorMessage);
-    }
-  };
+    };
+
+    // Delay to ensure SDK and connectors are fully ready (especially for MetaMask)
+    const timer = setTimeout(() => {
+      autoConnect();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [isConnected, isConnecting, isMiniAppReady, connectors, connect]);
 
 
   // Show loading during mount to prevent hydration mismatch
@@ -102,53 +110,30 @@ export default function Home() {
     );
   }
 
-  // Show wallet connection options if not connected
+  // Show loading while connecting
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-purple-950 flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
-          <div className="text-center mb-8">
+        <div className="text-center">
+          <div className="mb-8">
             <Logo size="large" />
             <p className="text-yellow text-sm uppercase tracking-wider opacity-80 mt-4">
               Anonymous advice from verified women
             </p>
           </div>
-
-          <div className="bg-white/5 border-3 border-yellow p-6">
-            <h2 className="text-yellow text-xl font-bold mb-4 uppercase">Connect Your Wallet</h2>
-            
-            {connectionError && (
-              <div className="bg-red-900/50 text-red-200 p-3 mb-4 text-sm border border-red-500">
-                <p className="font-bold mb-1">Error:</p>
-                <p>{connectionError}</p>
-              </div>
-            )}
-
-            {connectors.length === 0 ? (
-              <div className="text-white text-center py-8">
-                <p className="mb-4">No wallet connectors available.</p>
-                <p className="text-sm text-gray-400">
-                  Please ensure you're accessing this app from Farcaster.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {connectors.map((connector) => (
-                  <button
-                    key={connector.id}
-                    onClick={() => handleConnect(connector)}
-                    disabled={isConnecting || isPending}
-                    className="w-full bg-yellow text-black font-bold py-4 px-6 uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
-                  >
-                    <span>{connector.name}</span>
-                    {isConnecting && (
-                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          
+          <div className="w-16 h-16 border-4 border-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-yellow text-sm uppercase tracking-wider font-medium">
+            {isConnecting ? 'CONNECTING WALLET' : 'INITIALIZING'}
+          </p>
+          
+          {connectionError && (
+            <div className="mt-6 bg-red-900/50 text-red-200 p-4 text-sm border border-red-500 max-w-md mx-auto">
+              <p className="font-bold mb-1">Connection Error:</p>
+              <p>{connectionError}</p>
+              <p className="mt-2 text-xs opacity-75">Please ensure you're accessing this app from Farcaster.</p>
+            </div>
+          )}
         </div>
       </div>
     );

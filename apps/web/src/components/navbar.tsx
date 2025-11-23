@@ -10,12 +10,12 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetDescription,
 } from "@/components/ui/sheet"
 import { WalletConnect, WalletStatus } from "@/components/wallet-connect"
 
 const navLinks = [
   { name: "Home", href: "/" },
-  { name: "Wallet Demo", href: "/wallet-demo" },
   { name: "Docs", href: "https://docs.celo.org", external: true },
 ]
 
@@ -35,6 +35,9 @@ export function Navbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80">
+              <SheetDescription className="sr-only">
+                Navigation menu
+              </SheetDescription>
               <div className="flex items-center gap-2 mb-8">
 
                 <span className="font-bold text-lg">
